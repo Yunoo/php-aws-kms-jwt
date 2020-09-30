@@ -1,7 +1,7 @@
 {
     "name": "iweron/aws-kms-jwt",
     "type": "library",
-    "description": "JWT token generation using AWS KMS for encryption",
+    "description": "JWT token generation using symmetric encryption with AWS KMS",
     "license": "MIT",
     "require": {
         "php": ">=5.3.3",
@@ -10,7 +10,7 @@
     },
     "autoload": {
       "psr-4": {
-        "App\\": "src/"
+        "PhpKmsJwt\\": "src/"
       }
     }
 }

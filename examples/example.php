@@ -3,8 +3,8 @@
 
 require __DIR__ .'/../vendor/autoload.php';
 
-use App\Keymaker;
-use App\AwsKms;
+use PhpKmsJwt\Keymaker;
+use PhpKmsJwt\AwsKms;
 
 // KMS master key. Use you own ID
 // https://nsmith.net/aws-kms-cli

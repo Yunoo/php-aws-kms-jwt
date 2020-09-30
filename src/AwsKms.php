@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace PhpKmsJwt;
 
 use Aws\Kms\KmsClient;
 use Aws\Sts\StsClient;
