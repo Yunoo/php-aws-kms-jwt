@@ -10,8 +10,8 @@ class AwsKms
     private $kms;
 
     /**
-     * Initializes AWS KMS connection. 
-     * 
+     * Initialize an AWS KMS connection.
+     *
      * $credentials = [
      *     'profile'            => (string) AWS Profile.
      *     'region'             => (string) AWS Region.
@@ -102,7 +102,7 @@ class AwsKms
 
 
     /**
-     * Retrieve a data key from the 
+     * Retrieve a data key from the AWS KMS using a master key ID.
      * @param  string $key_id AWS KMS master key ID.
      * @return array          List containing a dataKey in both plaintext and encrypted format.
      */
@@ -116,6 +116,10 @@ class AwsKms
             'KeyId' => $key_id,
             'KeySpec' => 'AES_256',
         ));
+
+        if (!$dataKeyObject || empty($dataKeyObject['Plaintext']) || empty($dataKeyObject['CiphertextBlob'])) {
+            throw new \Exception("AwsKms::getDataKey() - cannot generate a data key. Check your AWS credentials.");
+        }
 
         return array(
             'dataKey' => $dataKeyObject['Plaintext'],

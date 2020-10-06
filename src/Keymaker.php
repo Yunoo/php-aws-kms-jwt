@@ -100,7 +100,7 @@ class Keymaker
     }
 
     /**
-     * Encrypt a string using
+     * Encrypt a string using a provided encryption key.
      *
      * @param  string $msg String to encrypt.
      * @param  string $key Encryption key.
