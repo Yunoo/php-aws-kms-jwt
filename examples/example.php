@@ -22,7 +22,7 @@ try {
       'role' => 'developer',
     );
     $kms = new AwsKms($credentials);
-    $keymaker = new Keymaker($kms, $key_id, 'ODP', 'aes-256-gcm');
+    $keymaker = new Keymaker($kms, $key_id, 'ODP', 'aes-256-cbc');
     // Generate an AWS KMS singned JWT token
     $token = $keymaker->generateSignedJWT('entitlement', null, null, null);
 

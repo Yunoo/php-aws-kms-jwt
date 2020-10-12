@@ -4,7 +4,7 @@ PHP JWT token generator using AWS KMS for encryption
 ### About AWS KMS JWT
 
 - Utilizes AWS KMS data keys for JWT generation using an envelope encryption method.
-- Supports PHP >=5.3
+- Supports PHP >=5.3 (excluding GCM and CCM cipher algorithms)
 
 ### Installing via Composer
 

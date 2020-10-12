@@ -18,7 +18,7 @@ class Keymaker
      * @param  string $iss    JWT token issuer.
      * @return void
      */
-    public function __construct($kms, $key_id, $iss, $cipher_algo = 'aes-256-gcm', $hash_algo = 'sha256')
+    public function __construct($kms, $key_id, $iss, $cipher_algo = 'aes-256-cbc', $hash_algo = 'sha256')
     {
         if (is_null($kms)) {
             throw new \Exception("Keymaker:: - no KMS instance provided");
@@ -36,12 +36,18 @@ class Keymaker
             throw new \Exception("Keymaker:: - unknown hash algo {$this->hash_algo}");
         }
 
+        $this->cipher_algo = strtolower($cipher_algo);
+        $this->iv_num_bytes = openssl_cipher_iv_length($cipher_algo);
+        if (version_compare(phpversion(), '7.1.0', '<=')) {
+            if (strpos($this->cipher_algo, 'gcm') !== false || strpos($this->cipher_algo, 'ccm') !== false) {
+                throw new \Exception("Keymaker:: - cannot use GCM or CCM cipher algorithm on PHP <= 7.1.0");
+            }
+        }
+
         $this->kms = $kms;
         $this->key_id = $key_id;
         $this->iss = $iss;
-        $this->cipher_algo = $cipher_algo;
         $this->hash_algo = $hash_algo;
-        $this->iv_num_bytes = openssl_cipher_iv_length($cipher_algo);
     }
 
     /**
@@ -70,9 +76,21 @@ class Keymaker
         $key_id = $this->key_id;
         $dataKeyArray = $this->kms->getDataKey($key_id);
 
+        if (strpos($this->cipher_algo, 'aes-128') !== false) {
+            $alg = 'KMS128';
+        } elseif (strpos($this->cipher_algo, 'aes-256') !== false) {
+            $alg = 'KMS256';
+        }
+
+        if (strpos($this->cipher_algo, 'gcm') !== false) {
+            $alg = $alg . 'v2';
+        } elseif (strpos($this->cipher_algo, 'cbc') == false) {
+            $alg = $this->cipher_algo;
+        }
+
         $headers = array(
             "typ" => "JWT",
-            "alg" => "KMS256",
+            "alg" => $alg,
             "kid" => $key_id,
         );
 
@@ -92,7 +110,7 @@ class Keymaker
         if (!empty($data)) {
             $payload['data'] = $data;
         }
-      
+
         $plaintext = $this->base64url_encode(json_encode($headers)) . '.' . $this->base64url_encode(json_encode($payload));
         $signature = $this->base64url_encode($this->encrypt($plaintext, $dataKeyArray['dataKey']));
         $token = $plaintext . '.' . $signature;
