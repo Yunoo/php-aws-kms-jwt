@@ -118,7 +118,7 @@ class Keymaker
             throw new \Exception('Keymaker::encrypt() - Encryption failed: ' . openssl_error_string());
         }
 
-        return $iv . $encrypted;
+        return pack('C', $this->iv_num_bytes) . $iv . $encrypted;
     }
 
     /**
