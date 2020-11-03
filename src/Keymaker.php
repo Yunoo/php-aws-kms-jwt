@@ -73,6 +73,7 @@ class Keymaker
      */
     public function generateSignedJWT($aud, $exp, $nbf, $data)
     {
+        $iat = time();
         $key_id = $this->key_id;
         $dataKeyArray = $this->kms->getDataKey($key_id);
 
@@ -94,7 +95,6 @@ class Keymaker
             "kid" => $key_id,
         );
 
-        $iat = time();
         $exp_timestamp = ($this->checkTimestamp($exp) && (int) $exp > $iat) ? (int) $exp : null;
         $nbf_timestamp = ($this->checkTimestamp($nbf) && (int) $nbf > $iat && (int) $nbf < $exp_timestamp) ? $nbf : null;
       
