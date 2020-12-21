@@ -23,8 +23,9 @@ try {
     );
     $kms = new AwsKms($credentials);
     $keymaker = new Keymaker($kms, $key_id, 'ODP', 'aes-256-cbc');
+    $exp = time() + 10*60;
     // Generate an AWS KMS singned JWT token
-    $token = $keymaker->generateSignedJWT('entitlement', null, null, null);
+    $token = $keymaker->generateSignedJWT('entitlement', $exp, null, null);
 
     print_r($token . PHP_EOL);
 } catch (\Exception $e) {
