@@ -46,7 +46,7 @@ class AwsKms
         $assumedCredentials = $this->getSTSCredentials($credentials);
         if (!empty($assumedCredentials)) {
             $aws_credentials['credentials'] = $assumedCredentials;
-        } else {
+        } elseif (!empty($credentials['access_key_id']) && !empty($credentials['secret_access_key'])) {
             $aws_credentials['key'] = $credentials['access_key_id'];
             $aws_credentials['secret'] = $credentials['secret_access_key'];
         }

@@ -4,9 +4,9 @@
     "description": "JWT token generation using symmetric encryption with AWS KMS",
     "license": "MIT",
     "require": {
-        "php": ">=5.3.3",
+        "php": ">=7.0",
         "ext-openssl": "*",
-        "aws/aws-sdk-php": "2.*"
+        "aws/aws-sdk-php": "3.*"
     },
     "autoload": {
       "psr-4": {

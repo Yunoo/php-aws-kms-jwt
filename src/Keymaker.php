@@ -6,6 +6,7 @@ class Keymaker
 {
     private $cipher_algo;
     private $hash_algo;
+    private $iss;
     private $iv_num_bytes;
     private $kms;
     private $key_id;
