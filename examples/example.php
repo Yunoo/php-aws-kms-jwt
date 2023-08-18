@@ -18,6 +18,8 @@ try {
      * 'AWS_PROFILE', 'AWS_REGION', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_STS_IAM', 'AWS_STS_ROLE'
      */
     $credentials = array(
+      'region' => 'eu-central-1',
+      'version' => '2014-11-01',
       'iam' => '623377067247',
       'role' => 'developer',
     );

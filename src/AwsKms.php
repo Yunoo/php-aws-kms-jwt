@@ -15,6 +15,7 @@ class AwsKms
      * $credentials = [
      *     'profile'            => (string) AWS Profile.
      *     'region'             => (string) AWS Region.
+     *     'version'            => (string) AWS SDK API Version.
      *     'access_key_id'      => (string) AWS Access key ID.
      *     'secret_access_key'  => (string) AWS Secret access key.
      *     'iam'                => (string) AWS IAM for assumuing a role via STS.
@@ -29,17 +30,19 @@ class AwsKms
             $credentials = array();
         }
 
-        $credentials['profile'] = $credentials['profile'] ? $credentials['profile'] : getenv('AWS_PROFILE');
-        $credentials['region'] = $credentials['region'] ? $credentials['region'] : getenv('AWS_REGION');
-        $credentials['access_key_id'] = $credentials['access_key_id'] ? $credentials['access_key_id'] : getenv('AWS_ACCESS_KEY_ID');
-        $credentials['secret_access_key'] = $credentials['secret_access_key'] ? $credentials['secret_access_key'] : getenv('AWS_SECRET_ACCESS_KEY');
+        $credentials['profile'] = $credentials['profile'] ?? getenv('AWS_PROFILE');
+        $credentials['region'] = $credentials['region'] ?? getenv('AWS_REGION') ?? 'eu-central-1';
+        $credentials['version'] = $credentials['version'] ?? '2014-11-01';
+        $credentials['access_key_id'] = $credentials['access_key_id'] ?? getenv('AWS_ACCESS_KEY_ID');
+        $credentials['secret_access_key'] = $credentials['secret_access_key'] ?? getenv('AWS_SECRET_ACCESS_KEY');
         // iam and role are used for assuming an STS role
-        $credentials['iam'] = $credentials['iam'] ? $credentials['iam'] : getenv('AWS_STS_IAM');
-        $credentials['role'] = $credentials['role'] ? $credentials['role'] : getenv('AWS_STS_ROLE');
+        $credentials['iam'] = $credentials['iam'] ?? getenv('AWS_STS_IAM');
+        $credentials['role'] = $credentials['role'] ?? getenv('AWS_STS_ROLE');
 
         $aws_credentials = array(
             'profile' => $credentials['profile'],
             'region'  => $credentials['region'],
+            'version' => $credentials['version'],
         );
 
         // Try to assume credentials
@@ -47,8 +50,10 @@ class AwsKms
         if (!empty($assumedCredentials)) {
             $aws_credentials['credentials'] = $assumedCredentials;
         } elseif (!empty($credentials['access_key_id']) && !empty($credentials['secret_access_key'])) {
-            $aws_credentials['key'] = $credentials['access_key_id'];
-            $aws_credentials['secret'] = $credentials['secret_access_key'];
+            $aws_credentials['credentials'] = array(
+                'key' => $credentials['access_key_id'],
+                'secret'  => $credentials['secret_access_key'],
+            );
         }
 
         $this->kms = $this->initKMS($aws_credentials);
@@ -68,19 +73,23 @@ class AwsKms
             $sts = StsClient::factory(array_filter(array(
                 'profile' => $credentials['profile'],
                 'region' => $credentials['region'],
-                'key' =>  $credentials['access_key_id'],
-                'secret' => $credentials['secret_access_key'],
+                'version' => 'latest',
+                'credentials' => array(
+                    'key' => $credentials['access_key_id'],
+                    'secret' => $credentials['secret_access_key'],
+                ),
             )));
 
-            $assumedRole = $sts->AssumeRole(array(
+            $assumedRole = $sts->assumeRole(array(
                 'RoleArn' => 'arn:aws:iam::' . $credentials['iam'] . ':role/' . $credentials['role'],
                 'RoleSessionName' => 'aws-kms-assume-role-' . time(),
             ));
 
+            $temp = $assumedRole->get('Credentials');
             return array(
-                'key'    => $assumedRole['Credentials']['AccessKeyId'],
-                'secret' => $assumedRole['Credentials']['SecretAccessKey'],
-                'token'  => $assumedRole['Credentials']['SessionToken'],
+                'key'    => $temp['AccessKeyId'],
+                'secret' => $temp['SecretAccessKey'],
+                'token'  => $temp['SessionToken'],
             );
         } catch (\Exception $e) {
             return null;
@@ -111,7 +120,7 @@ class AwsKms
         if (is_null($key_id)) {
             throw new \Exception("AwsKms::getDataKey() - no KMS master key id provided");
         }
-        
+
         $dataKeyObject = $this->kms->generateDataKey(array(
             'KeyId' => $key_id,
             'KeySpec' => 'AES_256',
